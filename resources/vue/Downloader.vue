@@ -5,46 +5,80 @@
                 :columns="columns"
                 :data="data"
                 :bordered="true"
+                :loading="isDownloading"
             ></n-data-table>
         </n-gi>
     </n-grid>
 </template>
-<script setup>
-import { h } from 'vue';
-import { NGi, NGrid } from 'naive-ui';
-import { DownloadOutlined } from '@vicons/material';
+<script setup>ref
+import { h, ref, onMounted } from 'vue';
+import { NGi, NGrid, NSpace } from 'naive-ui';
+import { DownloadOutlined, SearchFilled } from '@vicons/material';
 import { NDataTable, NButton, NIcon } from 'naive-ui';
 
-const columns = [
+const data = ref([]);
+const isDownloading = ref(false);
+
+const columns = ref([
     {
-        title: 'Name',
-        key: 'name',
+        title: 'Resource',
+        key: 'resource',
     },
     {
-        title: 'Type',
-        key: 'type',
+        title: 'URL',
+        key: 'url',
+    },
+    {
+        title: 'Progress',
+        key: 'progress',
+        render: (row) => `${row.stored} / ${row.records}`,
     },
     {
         title: 'Actions',
         key: 'actions',
         align: 'right',
         render: (row) => h(
-            NButton, 
-            { type: 'success', loading: row.loading }, 
-            { default: () => "Download", icon: renderIcon(DownloadOutlined) }
+            NSpace,
+            { align: 'center', justify: 'end', size: 'small' }, // Add alignment and spacing
+            [
+                h(NButton, 
+                    { type: 'info', loading: row.loading, disabled: row.discovered }, 
+                    { default: () => h('span', null, 'Discover'), icon: renderIcon(SearchFilled) }
+                ),
+                h(NButton, 
+                    { type: 'success', loading: row.loading, disabled: !row.discovered }, 
+                    { default: () => ('span', null, 'Download'), icon: renderIcon(DownloadOutlined) }
+                ),
+            ]
         ),
     },
-];
-
-const data = [
-    { name: 'Species A', type: 'species', loading: false },
-    { name: 'Species B', type: 'species', loading: false },
-    { name: 'Species C', type: 'species', loading: false },
-    { name: 'Species D', type: 'species', loading: false },
-    { name: 'Species E', type: 'species', loading: false },
-];
+]);
 
 function renderIcon(icon) {
     return () => h(NIcon, null, { default: () => h(icon) });
 }
+
+async function fetchAllResources() {
+    isDownloading.value = true;
+    try {
+        const response = await fetch('/api/pokeapi/resource'); // Adjust the API endpoint as needed
+        const result = await response.json();
+        data.value = result.map(item => ({
+            resource: item.key,
+            url: item.url,
+            records: 0,
+            stored: 0,
+            resources: [],
+            discovered: false,
+            loading: false,
+        }));
+
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    } finally {
+        isDownloading.value = false;
+    }
+}
+
+onMounted(fetchAllResources);
 </script>
