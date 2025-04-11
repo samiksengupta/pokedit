@@ -1,10 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ThirdPartyResourceController;
+use App\Http\Controllers\PokeApiResourceController;
 
 // Group routes with a common prefix
 Route::group(['prefix' => 'pokeapi'], function () {
-    Route::get('resource', [ThirdPartyResourceController::class, 'resource'])->name('resource');
-    Route::get('resource/{id}', [ThirdPartyResourceController::class, 'resourceShow'])->name('resource.show');
+    Route::get('resource', [PokeApiResourceController::class, 'resource'])->name('resource');
+    Route::get('resource/{id}', [PokeApiResourceController::class, 'resourceShow'])->name('resource.show');
 });

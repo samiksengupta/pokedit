@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\PokeApiService; // Import the service
 
-class ThirdPartyResourceController extends Controller
+class PokeApiResourceController extends Controller
 {
     protected $pokeApiService;
 
