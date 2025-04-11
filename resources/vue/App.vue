@@ -1,5 +1,5 @@
 <template>
-    <n-card title="POKEDIT">
+    <n-card title="POKEDIT" class="fullscreen-card">
         <n-menu 
             :options="menuItems"
             :default-value="['home']"
@@ -56,3 +56,12 @@ const menuItems = [
     },
 ];
 </script>
+<style>
+    .fullscreen-card {
+        height: 100vh; /* Full viewport height */
+        width: 100vw;  /* Full viewport width */
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+</style>
