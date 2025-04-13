@@ -37,20 +37,23 @@ const columns = ref([
         title: 'Actions',
         key: 'actions',
         align: 'right',
-        render: (row) => h(
-            NSpace,
-            { align: 'center', justify: 'end', size: 'small' }, // Add alignment and spacing
-            [
-                h(NButton, 
-                    { type: 'info', loading: row.loading, disabled: row.discovered }, 
-                    { default: () => h('span', null, 'Discover'), icon: renderIcon(SearchFilled) }
-                ),
-                h(NButton, 
-                    { type: 'success', loading: row.loading, disabled: !row.discovered }, 
-                    { default: () => ('span', null, 'Download'), icon: renderIcon(DownloadOutlined) }
-                ),
-            ]
-        ),
+        render: (row) => {
+            return h(NSpace,
+                { align: 'center', justify: 'end', size: 'small' },
+                { default: () => 
+                    [
+                        h(NButton, 
+                            { type: 'info', loading: row.loading, disabled: row.discovered }, 
+                            { default: () => h('span', null, 'Discover'), icon: renderIcon(SearchFilled) }
+                        ),
+                        h(NButton, 
+                            { type: 'success', loading: row.loading, disabled: !row.discovered }, 
+                            { default: () => h('span', null, 'Download'), icon: renderIcon(DownloadOutlined) }
+                        ),
+                    ]
+                }
+            );
+        },
     },
 ]);
 
