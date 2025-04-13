@@ -25,7 +25,7 @@ class PokeApiResourceController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function resource(Request $request)
+    public function index(Request $request)
     {
         $type = $request->query('type', null);
         $resources = $this->pokeApiService->fetchResources($type);

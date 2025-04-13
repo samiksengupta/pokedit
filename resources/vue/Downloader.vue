@@ -5,7 +5,7 @@
                 :columns="columns"
                 :data="data"
                 :bordered="true"
-                :loading="isDownloading"
+                :loading="isTableDownloading"
             ></n-data-table>
         </n-gi>
     </n-grid>
@@ -17,7 +17,7 @@ import { DownloadOutlined, SearchFilled } from '@vicons/material';
 import { NDataTable, NButton, NIcon } from 'naive-ui';
 
 const data = ref([]);
-const isDownloading = ref(false);
+const isTableDownloading = ref(false);
 
 const columns = ref([
     {
@@ -43,11 +43,11 @@ const columns = ref([
                 { default: () => 
                     [
                         h(NButton, 
-                            { type: 'info', loading: row.loading, disabled: row.discovered }, 
+                            { type: 'info', loading: row.discovering, disabled: row.discovered, onClick: fetchAllResources.bind(null, row) }, 
                             { default: () => h('span', null, 'Discover'), icon: renderIcon(SearchFilled) }
                         ),
                         h(NButton, 
-                            { type: 'success', loading: row.loading, disabled: !row.discovered }, 
+                            { type: 'success', loading: row.downloading, disabled: !row.discovered }, 
                             { default: () => h('span', null, 'Download'), icon: renderIcon(DownloadOutlined) }
                         ),
                     ]
@@ -61,27 +61,47 @@ function renderIcon(icon) {
     return () => h(NIcon, null, { default: () => h(icon) });
 }
 
-async function fetchAllResources() {
-    isDownloading.value = true;
+async function fetchAllResources(row = null) {
+    isTableDownloading.value = true;
+    if (row) {
+        row.discovering = true;
+    }
     try {
-        const response = await fetch('/api/pokeapi/resource'); // Adjust the API endpoint as needed
+        const url = row ? `/api/pokeapi/resources?type=${row.resource}` : '/api/pokeapi/resources';
+        const response = await fetch(url);
         const result = await response.json();
-        data.value = result.map(item => ({
-            resource: item.key,
-            url: item.url,
-            records: 0,
-            stored: 0,
-            resources: [],
-            discovered: false,
-            loading: false,
-        }));
-
+        if (row) {
+            row.discovering = false;
+            handleSpecificResources(result, row);
+        } else {
+            handleAllResources(result);
+        }
     } catch (error) {
         console.error('Error fetching data:', error);
     } finally {
-        isDownloading.value = false;
+        isTableDownloading.value = false;
     }
 }
+
+function handleAllResources(result) {
+    data.value = result.map(item => ({
+        resource: item.key,
+        url: item.url,
+        records: 0,
+        stored: 0,
+        resources: [],
+        discovering: false,
+        discovered: false,
+        downloading: false,
+        downloaded: false,
+    }));
+};
+
+function handleSpecificResources(result, row) {
+   row.records = result.count;
+   row.resources = result.resources;
+   row.discovered = true;
+};
 
 onMounted(fetchAllResources);
 </script>

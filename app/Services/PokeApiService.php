@@ -15,29 +15,40 @@ class PokeApiService
      * @param string $resourceType
      * @return array
      */
-    public function fetchResources(?string $resourceType = null): array
+    public function fetchResources(?string $type = null): array
     {
-        $resourceName = $resourceType ?? '';
-
-        $resourceType = $resourceType ?? 'index';
+        $baseUrl = $this->baseUrl;
+        $resourceType = 'index';
+        
+        if ($type) {
+            $resourceType = $type;
+            $baseUrl .= $resourceType . '/';
+        }
 
         // Cache key based on the resource type
         $cacheKey = "pokeapi_{$resourceType}";
 
-        Cache::forget($cacheKey); // Clear the cache for the resource type
+        // Cache::forget($cacheKey); // Clear the cache for the resource type
 
         // Check if the data is already cached
-        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($resourceName) {
-            $response = Http::get($this->baseUrl . $resourceName);
+        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($baseUrl, $resourceType) {
+            $response = Http::get($baseUrl);
 
             if ($response->successful()) {
-                return collect($response->json())->map(fn ($value, $key) => [
+                if ($resourceType === 'index') {
+                    // If it's the index, we need to fetch the list of resources
+                    return collect($response->json())->map(fn ($value, $key) => [
                         'key' => $key,
                         'url' => $value,
                         'resources' => [],
                     ])
                     ->values()
                     ->toArray();
+                } else {
+                    return collect($response->json())
+                    ->toArray();
+                }
+                
             }
 
             return [];
