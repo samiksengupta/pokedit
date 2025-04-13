@@ -15,6 +15,7 @@ import { h, ref, onMounted } from 'vue';
 import { NGi, NGrid, NSpace } from 'naive-ui';
 import { DownloadOutlined, SearchFilled } from '@vicons/material';
 import { NDataTable, NButton, NIcon } from 'naive-ui';
+import DownloaderProgress from './DownloaderProgress.vue';
 
 const data = ref([]);
 const isTableDownloading = ref(false);
@@ -31,7 +32,8 @@ const columns = ref([
     {
         title: 'Progress',
         key: 'progress',
-        render: (row) => `${row.stored} / ${row.records}`,
+        align: 'center',
+        render: (row) => h(DownloaderProgress, { stored: row.stored, records: row.records, message: null }),
     },
     {
         title: 'Actions',
