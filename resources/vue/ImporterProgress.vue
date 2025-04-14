@@ -1,6 +1,6 @@
 <template>
     <n-grid item-responsive>
-        <n-gi span="24">
+        <n-gi v-if="total" span="24">
             {{ stored }} / {{ total }}
         </n-gi>
         <n-gi span="24">

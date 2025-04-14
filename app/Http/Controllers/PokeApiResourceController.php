@@ -37,16 +37,18 @@ class PokeApiResourceController extends Controller
     }
 
     /**
-     * Fetch resources from the PokeAPI.
+     * Import resources from the PokeAPI.
      *
      * @param Request $request
+     * @param string $type
+     * @param string $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function show(Request $request, string $type, string $id): JsonResponse
     {
-        $processed = $this->pokeApiService->processResource($type, $id);
+        $imported = $this->pokeApiService->importResource($type, $id);
 
-        return response()->json(['processed' => $processed]);
+        return response()->json(['imported' => $imported]);
     }
 
     public function destroy(Request $request, string $type): JsonResponse

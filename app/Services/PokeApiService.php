@@ -61,7 +61,7 @@ class PokeApiService
         });
     }
 
-    public function processResource(string $resourceType, string $resourceId): bool
+    public function importResource(string $resourceType, string $resourceId): bool
     {
         $baseUrl = $this->baseUrl;
         

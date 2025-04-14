@@ -53,8 +53,8 @@ const columns = ref([
                             { default: () => h('span', null, 'Discover'), icon: renderIcon(SearchFilled) }
                         ),
                         h(NButton, 
-                            { type: 'success', loading: row.downloading, disabled: !row.discovered || row.downloading || row.downloaded, onClick: async () => await storeResources(row) }, 
-                            { default: () => h('span', null, 'Download'), icon: renderIcon(DownloadOutlined) }
+                            { type: 'success', loading: row.importing, disabled: !row.discovered || row.importing || row.imported, onClick: async () => await importResources(row) }, 
+                            { default: () => h('span', null, 'Import'), icon: renderIcon(DownloadOutlined) }
                         ),
                     ]
                 }
@@ -94,18 +94,18 @@ async function fetchAllResources(row = null, offset = 0, limit = 20) {
     }
 }
 
-async function storeResources(row) {
-    displayRowMessage(row, `Downloading resources for: ${row.key}`, 'info');
+async function importResources(row) {
+    displayRowMessage(row, `importing resources for: ${row.key}`, 'info');
     if (!row.key || row.resources.length === 0) {
-        displayRowMessage(row, `No resources to download for resource: ${row.key}.`, 'warn');
+        displayRowMessage(row, `No resources to import for resource: ${row.key}.`, 'warn');
         return;
     }
     
-    row.downloading = true; // Set the downloading state to true
+    row.importing = true; // Set the importing state to true
 
     try {
         while (row.resources.length || row.next) {
-            await processResource(row); // Process each resource sequentially
+            await importResource(row); // import each resource sequentially
             if (row.resources.length === 0 && row.next) {
                 const urlParams = new URLSearchParams(row.next.split('?')[1]);
                 const offset = urlParams.get('offset');
@@ -114,16 +114,16 @@ async function storeResources(row) {
             }
         }
         
-        row.downloaded = true; // Mark the row as fully downloaded
-        displayRowMessage(row, `Downloads completed for: ${row.key}`, 'info');
+        row.imported = true; // Mark the row as fully imported
+        displayRowMessage(row, `Imports completed for: ${row.key}`, 'info');
     } catch (error) {
-        console.error('Error downloading resources:', error);
+        console.error('Error importing resources:', error);
     } finally {
-        row.downloading = false; // Reset the downloading state
+        row.importing = false; // Reset the importing state
     }
 }
 
-async function processResource(row) {
+async function importResource(row) {
     const type = row.key;
     const resource = row.resources.shift();
 
@@ -135,16 +135,17 @@ async function processResource(row) {
             throw new Error(`Failed to fetch resource: ${type} ${id}`);
         }
         const data = await response.json();
-        // Add logic to store or process the fetched data here
-        if (data.processed) {
+        
+        // Add logic to store or import the fetched data here
+        if (data.imported) {
             row.stored += 1; // Increment the stored count
-            displayRowMessage(row, `Resource: ${type} ${id} processed successfully.`, 'info');
+            displayRowMessage(row, `Resource: ${type} ${id} imported successfully.`, 'info');
         } else {
-            row.resources.unshift(resource); // Re-add the resource to the queue if not processed
-            displayRowMessage(row, `Resource: ${type} ${id} was not processed and will be re-queued.`, 'warn');
+            // row.resources.unshift(resource); // Re-add the resource to the queue if not imported
+            displayRowMessage(row, `Resource: ${type} ${id} was not imported and will be re-queued.`, 'warn');
         }
     } catch (error) {
-        console.error(`Error processing resource: ${type} ${id}`, error);
+        console.error(`Error importing resource: ${type} ${id}`, error);
         throw error; // Re-throw the error to stop the queue if needed
     }
 }
@@ -155,6 +156,7 @@ async function deleteResource(row) {
     await fetch(url, {
         method: 'DELETE',
     });
+    displayRowMessage(row, `Import pending`, 'info');
 }
 
 function handleAllResources(result) {
@@ -167,8 +169,8 @@ function handleAllResources(result) {
         next: null,
         discovering: false,
         discovered: false,
-        downloading: false,
-        downloaded: false,
+        importing: false,
+        imported: false,
         message: null
     }));
 };
