@@ -121,7 +121,7 @@ class PokeApiImporter {
         $version = Version::where('slug', Setting::find('app.version')->value ?? null)->firstOrFail();
         Generation::upsert(
             [
-                'slug' => $name,
+                'slug' => $payload['name'],
                 'version_id' => $version->id
             ],
             ['slug'],
