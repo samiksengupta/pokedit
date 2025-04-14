@@ -108,10 +108,12 @@ class PokeApiImporter {
     {
         Language::upsert(
             [
-                ['slug' => $payload['name'], 'created_at' => now(), 'updated_at' => now()]
+                'slug' => $payload['name'],
+                'created_at' => now(),
+                'updated_at' => now()
             ],
-            ['slug'], // Conflict target (unique column)
-            ['updated_at'] // Columns to update on conflict
+            ['slug'],
+            ['updated_at']
         );
         return true;
     }
@@ -119,10 +121,16 @@ class PokeApiImporter {
     public static function importGeneration(string $name, array $payload): bool
     {
         $version = Version::where('slug', Setting::find('app.version')->value ?? null)->firstOrFail();
-        Generation::upsert([
-            'slug' => $name,
-            'version_id' => $version->id
-        ], []);
+        Generation::upsert(
+            [
+                'slug' => $name,
+                'version_id' => $version->id,
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+            ['slug'],
+            ['updated_at']
+        );
         return true;
     }
 
