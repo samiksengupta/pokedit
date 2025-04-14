@@ -70,6 +70,7 @@ function renderIcon(icon) {
 async function fetchAllResources(row = null, offset = 0, limit = 20) {
     if (row) {
         row.discovering = true;
+        await deleteResource(row); // Clear the resources before fetching new ones
     } else {
         isPreparingTable.value = true;
     }
@@ -146,6 +147,14 @@ async function processResource(row) {
         console.error(`Error processing resource: ${type} ${id}`, error);
         throw error; // Re-throw the error to stop the queue if needed
     }
+}
+
+async function deleteResource(row) {
+    displayRowMessage(row, `Deleting resources for: ${row.key}`, 'info');
+    const url = `/api/pokeapi/resources/${row.key}`;
+    await fetch(url, {
+        method: 'DELETE',
+    });
 }
 
 function handleAllResources(result) {

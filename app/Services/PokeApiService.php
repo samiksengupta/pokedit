@@ -27,9 +27,8 @@ class PokeApiService
         }
 
         $cacheKey = $this->generateCacheKey($baseUrl);
-        // dump($baseUrl, $cacheKey);
 
-        Cache::forget($cacheKey); // Clear the cache for the resource type
+        // Cache::forget($cacheKey); // Clear the cache for the resource type
 
         // Check if the data is already cached
         return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($baseUrl, $resourceType) {
@@ -37,22 +36,23 @@ class PokeApiService
             
             if ($response->successful()) {
                 if ($resourceType) {
+                    $isUnnamedId = $this->hasUnnamedIds($resourceType);
                     return collect($response->json())->mapWithKeys(fn ($value, $key) => 
                         $key === 'results' ? [
                             $key => collect($value)->map(fn ($result, $key) => [
-                                'id' => $result['name'] ?? basename($result['url']),
+                                'id' => $isUnnamedId || !isset($result['name']) ? basename($result['url']) : $result['name'],
                                 'url' => $result['url']
                             ])->values()->toArray()
                         ] : [$key => $value]
                     )->toArray();
                 } else {
                     // If it's the index, we need to fetch the list of resources
-                    return collect($response->json())->map(fn ($value, $key) => [
+                    return $this->sortResourceIndex(collect($response->json())->map(fn ($value, $key) => [
                         'key' => $key,
                         'url' => $value
                     ])
                     ->values()
-                    ->toArray();
+                    ->toArray());
                 }
                 
             }
@@ -61,7 +61,7 @@ class PokeApiService
         });
     }
 
-    public function processResource(string $resourceType, string $resourceName): bool
+    public function processResource(string $resourceType, string $resourceId): bool
     {
         $baseUrl = $this->baseUrl;
         
@@ -69,15 +69,58 @@ class PokeApiService
             $baseUrl .= $resourceType . '/';
         }
 
-        if ($resourceName) {
-            $baseUrl .= $resourceName . '/';
+        if ($resourceId) {
+            $baseUrl .= $resourceId . '/';
         }
 
-        return true;
+        $cacheKey = $this->generateCacheKey($baseUrl);
+
+        // Cache::forget($cacheKey); // Clear the cache for the resource type
+
+        $payload = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($baseUrl) {
+            $response = Http::get($baseUrl);
+            if ($response->successful()) {
+                return $response->json();
+            }
+            return null;
+        });
+
+        if ($payload) {
+            return PokeApiImporter::import($resourceType, $resourceId, $payload);
+        }
+
+        return false;
+    }
+
+    public function deleteResource(string $resourceType): bool
+    {
+        return PokeApiImporter::truncate($resourceType);
+    }
+
+    public function clearCache(string $resourceType): void
+    {
+        $baseUrl = $this->baseUrl . $resourceType . '/';
+        $cacheKey = $this->generateCacheKey($baseUrl);
+        Cache::forget($cacheKey);
     }
 
     private function generateCacheKey(?string $baseUrl): string
     {
         return 'pokeapi_' . md5($baseUrl);
+    }
+
+    private function sortResourceIndex(array $resources): array
+    {
+        $ordering = collect(['language', 'generation', 'ability', 'type', 'move-damage-class', 'contest-type', 'move-target', 'move', 'move-learn-method', 'egg-group', 'growth-rate', 'pokemon-habitat', 'pokemon-shape', 'pokemon-color', 'pokemon-species']);
+        return collect($resources)->filter(function($value, $key) use($ordering) {
+            return $ordering->contains($value['key']);
+        })->sortBy(function($value) use($ordering) {
+            return $ordering->search($value['key']);
+        })->values()->toArray();
+    }
+
+    private function hasUnnamedIds($resourceType): bool
+    {
+        return in_array($resourceType, ['language', 'characteristic', 'contest-effect', 'evolution-chain', 'machine', 'super-contest-effect']);
     }
 }

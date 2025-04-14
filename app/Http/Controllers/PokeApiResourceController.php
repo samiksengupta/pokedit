@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\PokeApiService; // Import the service
+use Illuminate\Http\JsonResponse;
+use App\Services\PokeApiService; 
 
 class PokeApiResourceController extends Controller
 {
@@ -25,7 +26,7 @@ class PokeApiResourceController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $resourceType = $request->query('type', null);
         $offset = (int) $request->query('offset', 0);
@@ -41,10 +42,18 @@ class PokeApiResourceController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Request $request, string $type, string $name)
+    public function show(Request $request, string $type, string $id): JsonResponse
     {
-        $processed = $this->pokeApiService->processResource($type, $name);
+        $processed = $this->pokeApiService->processResource($type, $id);
 
         return response()->json(['processed' => $processed]);
+    }
+
+    public function destroy(Request $request, string $type): JsonResponse
+    {
+        $this->pokeApiService->clearCache($type);
+        $this->pokeApiService->deleteResource($type);
+
+        return response()->json(['message' => 'Resource cleared successfully.']);
     }
 }
