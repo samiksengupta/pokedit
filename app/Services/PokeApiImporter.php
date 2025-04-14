@@ -108,9 +108,7 @@ class PokeApiImporter {
     {
         Language::upsert(
             [
-                'slug' => $payload['name'],
-                'created_at' => now(),
-                'updated_at' => now()
+                'slug' => $payload['name']
             ],
             ['slug'],
             ['updated_at']
@@ -124,9 +122,7 @@ class PokeApiImporter {
         Generation::upsert(
             [
                 'slug' => $name,
-                'version_id' => $version->id,
-                'created_at' => now(), 
-                'updated_at' => now()
+                'version_id' => $version->id
             ],
             ['slug'],
             ['updated_at']
