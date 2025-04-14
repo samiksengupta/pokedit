@@ -24,12 +24,12 @@ const columns = ref([
     {
         title: 'Resource',
         key: 'key',
-        width: '10%', // Equivalent to col-md-4 (1/3 of the row)
+        width: '10%',
     },
     {
         title: 'URL',
         key: 'url',
-        width: '30%', // Equivalent to col-md-4 (1/3 of the row)
+        width: '30%',
     },
     {
         title: 'Progress',
