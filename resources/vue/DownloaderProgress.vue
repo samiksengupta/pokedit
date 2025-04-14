@@ -1,14 +1,14 @@
 <template>
     <n-grid item-responsive>
         <n-gi span="24">
-            {{ stored }} / {{ records }}
+            {{ stored }} / {{ total }}
         </n-gi>
         <n-gi span="24">
             <n-progress
                 v-if="showProgress"
                 :percentage="progressPercentage"
                 :show-indicator="false"
-                :type="line"
+                type="line"
             ></n-progress>
         </n-gi>
         <n-gi span="24">
@@ -25,7 +25,7 @@ const props = defineProps({
         type: Number,
         default: 0,
     },
-    records: {
+    total: {
         type: Number,
         default: 0,
     },
@@ -48,10 +48,10 @@ const progressMessage = computed(() => {
 });
 
 const showProgress = computed(() => {
-    return props.records > 0;
+    return props.total > 0;
 });
 
 const progressPercentage = computed(() => {
-    return props.stored / props.records * 100;
+    return props.stored / props.total * 100;
 });
 </script>

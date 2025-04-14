@@ -15,37 +15,43 @@ class PokeApiService
      * @param string $resourceType
      * @return array
      */
-    public function fetchResources(?string $type = null): array
+    public function fetchResources(?string $resourceType = null, ?int $offset = 0, ?int $limit = 20): array
     {
         $baseUrl = $this->baseUrl;
-        $resourceType = 'index';
         
-        if ($type) {
-            $resourceType = $type;
+        if ($resourceType) {
             $baseUrl .= $resourceType . '/';
+            if ($offset && $limit) {
+                $baseUrl .= sprintf('?offset=%s&limit=%s', $offset, $limit);
+            }
         }
 
-        // Cache key based on the resource type
-        $cacheKey = "pokeapi_{$resourceType}";
+        $cacheKey = $this->generateCacheKey($baseUrl);
+        // dump($baseUrl, $cacheKey);
 
-        // Cache::forget($cacheKey); // Clear the cache for the resource type
+        Cache::forget($cacheKey); // Clear the cache for the resource type
 
         // Check if the data is already cached
         return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($baseUrl, $resourceType) {
             $response = Http::get($baseUrl);
-
+            
             if ($response->successful()) {
-                if ($resourceType === 'index') {
+                if ($resourceType) {
+                    return collect($response->json())->mapWithKeys(fn ($value, $key) => 
+                        $key === 'results' ? [
+                            $key => collect($value)->map(fn ($result, $key) => [
+                                'id' => $result['name'] ?? basename($result['url']),
+                                'url' => $result['url']
+                            ])->values()->toArray()
+                        ] : [$key => $value]
+                    )->toArray();
+                } else {
                     // If it's the index, we need to fetch the list of resources
                     return collect($response->json())->map(fn ($value, $key) => [
                         'key' => $key,
-                        'url' => $value,
-                        'resources' => [],
+                        'url' => $value
                     ])
                     ->values()
-                    ->toArray();
-                } else {
-                    return collect($response->json())
                     ->toArray();
                 }
                 
@@ -55,23 +61,23 @@ class PokeApiService
         });
     }
 
-    public function fetchResourceMap(): array
+    public function processResource(string $resourceType, string $resourceName): bool
     {
-        $resources = collect($this->fetchResources());
+        $baseUrl = $this->baseUrl;
+        
+        if ($resourceType) {
+            $baseUrl .= $resourceType . '/';
+        }
 
-        return $resources->map(function ($value, $key) {
-            $resourceName = $key;
-            $resourceUrl = $value;
+        if ($resourceName) {
+            $baseUrl .= $resourceName . '/';
+        }
 
-            // Fetch the resource details (children)
-            $resourceDetails = $this->fetchResources($resourceName);
+        return true;
+    }
 
-            // Return the transformed structure
-            return [
-                'key' => $resourceName,
-                'url' => $resourceUrl,
-                'resources' => $resourceDetails,
-            ];
-        })->values()->toArray();
+    private function generateCacheKey(?string $baseUrl): string
+    {
+        return 'pokeapi_' . md5($baseUrl);
     }
 }

@@ -27,9 +27,24 @@ class PokeApiResourceController extends Controller
      */
     public function index(Request $request)
     {
-        $type = $request->query('type', null);
-        $resources = $this->pokeApiService->fetchResources($type);
+        $resourceType = $request->query('type', null);
+        $offset = (int) $request->query('offset', 0);
+        $limit = (int) $request->query('limit', 20);
+        $resources = $this->pokeApiService->fetchResources($resourceType, $offset, $limit);
 
         return response()->json($resources);
+    }
+
+    /**
+     * Fetch resources from the PokeAPI.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show(Request $request, string $type, string $name)
+    {
+        $processed = $this->pokeApiService->processResource($type, $name);
+
+        return response()->json(['processed' => $processed]);
     }
 }
