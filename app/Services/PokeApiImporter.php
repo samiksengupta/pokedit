@@ -3,23 +3,24 @@
 namespace App\Services;
 
 use DB;
-// use \App\Models\Type;
 use App\Models\Setting;
+// use \App\Models\Type;
+use App\Models\Version;
 // use \App\Models\Move;
 // use \App\Models\Form;
 // use \App\Models\Shape;
 // use \App\Models\Color;
-use App\Models\Version;
 use App\Models\Language;
-// use \App\Models\Ability;
+use App\Models\MoveFlag;
+use \App\Models\Ability;
 // use \App\Models\Habitat;
 // use \App\Models\Species;
-use App\Models\MoveFlag;
-// use \App\Models\EggGroup;
 use App\Models\Generation;
+// use \App\Models\EggGroup;
+use App\Models\GenderRatio;
 // use \App\Models\MoveTarget;
 // use \App\Models\GrowthRate;
-use App\Models\GenderRatio;
+use Illuminate\Support\Collection;
 // use \App\Models\MoveFunction;
 // use \App\Models\DamageCategory;
 // use \App\Models\MoveLearnMethod;
@@ -27,7 +28,7 @@ use App\Models\GenderRatio;
 
 class PokeApiImporter {
 
-    public static function import(string $resourceType, string $resourceId, array $payload): bool
+    public static function import(string $resourceType, string $resourceId, object $payload): bool
     {
         return match ($resourceType) {
             'language' => static::importLanguage($resourceId, $payload),
@@ -104,11 +105,11 @@ class PokeApiImporter {
         return true;
     }
 
-    public static function importLanguage(string $name, array $payload): bool
+    public static function importLanguage(string $name, object $payload): bool
     {
         Language::upsert(
             [
-                'slug' => $payload['name']
+                'slug' => $payload->name
             ],
             ['slug'],
             ['updated_at']
@@ -116,12 +117,12 @@ class PokeApiImporter {
         return true;
     }
 
-    public static function importGeneration(string $name, array $payload): bool
+    public static function importGeneration(string $name, object $payload): bool
     {
         $version = Version::where('slug', Setting::find('app.version')->value ?? null)->firstOrFail();
         Generation::upsert(
             [
-                'slug' => $payload['name'],
+                'slug' => $payload->name,
                 'version_id' => $version->id
             ],
             ['slug'],
@@ -130,34 +131,32 @@ class PokeApiImporter {
         return true;
     }
 
-    // public static function importAbility($name)
-    // {
-    //     $blacklist = explode(',', Setting::find('importer.blacklist.ability')->value ?? '');
-    //     if(\in_array($name, $blacklist)) return true;
+    public static function importAbility(string $name, object $payload): bool
+    {
+        if(!$payload->is_main_series) return true;
 
-    //     $api = new PokeApi;
-    //     $data = json_decode($api->ability($name));
-    //     if(!$data->is_main_series) return true;
+        $blacklist = explode(',', Setting::find('importer.blacklist.ability')->value ?? '');
+        if(\in_array($name, $blacklist)) return true;
 
-    //     $version = Version::where('slug', Setting::find('app.version')->value ?? null)->firstOrFail();
-    //     $generation = Generation::where('slug', $data->generation->name ?? null)->first();
+        $version = Version::where('slug', Setting::find('app.version')->value ?? null)->firstOrFail();
+        $generation = Generation::where('slug', $data->generation->name ?? null)->first();
 
-    //     $ability = Ability::firstOrNew([
-    //         'slug' => $name,
-    //         'version_id' => $version->id
-    //     ], []);
+        $ability = Ability::firstOrNew([
+            'slug' => $name,
+            'version_id' => $version->id
+        ], []);
 
-    //     $ability->version()->associate($version);
-    //     $ability->generation()->associate($generation);
+        $ability->version()->associate($version);
+        $ability->generation()->associate($generation);
 
-    //     $ability->names = static::getNamesCollection($data);
-    //     $ability->effectTexts = static::getEffectTextsCollection($data);
-    //     $ability->flavorTexts = static::getFlavorTextsCollection($data, 'sword-shield');
-    //     // $ability->flavorTexts = static::getEffectTextsCollection($data,  $version->pokeapi_version_group);
+        $ability->names = static::getNamesCollection($payload);
+        $ability->effectTexts = static::getEffectTextsCollection($payload);
+        $ability->flavorTexts = static::getFlavorTextsCollection($payload, 'sword-shield');
+        // $ability->flavorTexts = static::getEffectTextsCollection($payload,  $version->pokeapi_version_group);
         
-    //     $ability->save();
-    //     return true;
-    // }
+        $ability->save();
+        return true;
+    }
     
     // public static function importType($name)
     // {
@@ -360,70 +359,76 @@ class PokeApiImporter {
     //     return true;
     // }
 
-    // private static function getNamesCollection($data) 
-    // {
-    //     return Language::select(['id', 'slug'])->orderBy('id')->get()->map(function($language) use($data) {
-    //         $nameEntry = collect($data->names)->first(function($name) use($language){
-    //             return $name->language->name === $language->slug;
-    //         });
-    //         return (object) [
-    //             'language' => $language->slug,
-    //             'name' => $nameEntry->name ?? ""
-    //         ];
-    //     })->keyBy('language');
-    // }
+    private static function getNamesCollection(object $payload): Collection 
+    {
+        $names = collect();
+        $languages = Language::select(['id', 'slug'])->orderBy('id')->pluck('slug')->toArray();
+        foreach ($payload->names as $nameEntry) {
+            if (in_array($nameEntry->language->name, $languages)) {
+                $names->push((object) [
+                    'language' => $nameEntry->language->name,
+                    'name' => $nameEntry->name ?? ""
+                ]);
+            }
+        }
+        return $names;
+    }
 
-    // private static function getEffectTextsCollection($data) 
-    // {
-    //     return Language::select(['id', 'slug'])->orderBy('id')->get()->map(function($language) use($data) {
-    //         $effectEntry = collect($data->effect_entries)->first(function($effectEntry) use($language){
-    //             return $effectEntry->language->name === $language->slug;
-    //         });
-    //         return (object) [
-    //             'language' => $language->slug,
-    //             'effect_text' => $effectEntry->effect ?? "",
-    //             'short_effect_text' => $effectEntry->short_effect ?? ""
-    //         ];
-    //     })->keyBy('language');
-    // }
+    private static function getEffectTextsCollection(object $payload): Collection
+    {
+        $effectTexts = collect();
+        $languages = Language::select(['id', 'slug'])->orderBy('id')->pluck('slug')->toArray();
+        foreach ($payload->effect_entries as $effectEntry) {
+            if (in_array($effectEntry->language->name, $languages)) {
+                $effectTexts->push((object) [
+                    'language' => $effectEntry->language->name,
+                    'effect_text' => $effectEntry->effect ?? "",
+                    'short_effect_text' => $effectEntry->short_effect ?? ""
+                ]);
+            }
+        }
+        return $effectTexts;
+    }
 
-    // private static function getFlavorTextsCollection($data, $versionGroup) 
-    // {
+    private static function getFlavorTextsCollection(object $payload, string $versionGroup): Collection
+    {
+        // dd($payload->flavor_text_entries);
+        $filteredFlavorTextEntries = collect($payload->flavor_text_entries)->filter(function($value) use($versionGroup) {
+            if(property_exists($value, 'version_group')) return $value->version_group->name === $versionGroup;
+            else if(property_exists($value, 'version')) return $value->version->name === $versionGroup;
+            else return false;
+        });
 
-    //     $data = collect($data->flavor_text_entries)->filter(function($value) use($versionGroup) {
-    //         if(property_exists($value, 'version_group')) return $value->version_group->name === $versionGroup;
-    //         else if(property_exists($value, 'version')) return $value->version->name === $versionGroup;
-    //         else return false;
-    //     });
+        $flavorTexts = collect();
+        $languages = Language::select(['id', 'slug'])->orderBy('id')->pluck('slug')->toArray();
+        foreach ($filteredFlavorTextEntries as $flavorEntry) {
+            if (in_array($flavorEntry->language->name, $languages)) {
+                $flavorTexts->push((object) [
+                    'language' => $flavorEntry->language->name,
+                    'flavor_text' => $flavorTextEntry->flavor_text ?? ""
+                ]);
+            }
+        }
+        return $flavorTexts;
+    }
 
-    //     return Language::select(['id', 'slug'])->orderBy('id')->get()->map(function($language) use($data) {
-    //         $flavorTextEntry = $data->first(function($flavorText) use($language){
-    //             return $flavorText->language->name === $language->slug;
-    //         });
-    //         return (object) [
-    //             'language' => $language->slug,
-    //             'flavor_text' => $flavorTextEntry->flavor_text ?? ""
-    //         ];
-    //     })->keyBy('language');
-    // }
+    private static function getCompiledFlavorTextsCollection(object $payload, array $versionGroups): Collection
+    {
 
-    // private static function getCompiledFlavorTextsCollection($data, $versionGroups) 
-    // {
+        $payload = collect($payload->flavor_text_entries)->filter(function($value) use($versionGroups) {
+            if(property_exists($value, 'version')) return \in_array($value->version->name, $versionGroups);
+        });
 
-    //     $data = collect($data->flavor_text_entries)->filter(function($value) use($versionGroups) {
-    //         if(property_exists($value, 'version')) return \in_array($value->version->name, $versionGroups);
-    //     });
-
-    //     return Language::select(['id', 'slug'])->orderBy('id')->get()->map(function($language) use($data) {
-    //         $flavorTextEntries = $data->filter(function($flavorText) use($language){
-    //             return $flavorText->language->name === $language->slug;
-    //         })->values();
-    //         return (object) [
-    //             'language' => $language->slug,
-    //             'flavor_text' => \implode(' ', $flavorTextEntries->map(fn($flavorText) => $flavorText->flavor_text)->toArray())
-    //         ];
-    //     })->keyBy('language');
-    // }
+        return Language::select(['id', 'slug'])->orderBy('id')->get()->map(function($language) use($payload) {
+            $flavorTextEntries = $payload->filter(function($flavorText) use($language){
+                return $flavorText->language->name === $language->slug;
+            })->values();
+            return (object) [
+                'language' => $language->slug,
+                'flavor_text' => \implode(' ', $flavorTextEntries->map(fn($flavorText) => $flavorText->flavor_text)->toArray())
+            ];
+        })->keyBy('language');
+    }
 
     // private static function getGeneraCollection($data) 
     // {

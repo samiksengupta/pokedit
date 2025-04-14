@@ -80,7 +80,7 @@ class PokeApiService
         $payload = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($baseUrl) {
             $response = Http::get($baseUrl);
             if ($response->successful()) {
-                return $response->json();
+                return json_decode($response->body(), false);
             }
             return null;
         });
