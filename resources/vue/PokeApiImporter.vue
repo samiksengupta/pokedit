@@ -15,7 +15,7 @@ import { h, ref, onMounted } from 'vue';
 import { NGi, NGrid, NSpace } from 'naive-ui';
 import { DownloadOutlined, SearchFilled } from '@vicons/material';
 import { NDataTable, NButton, NIcon } from 'naive-ui';
-import DownloaderProgress from './DownloaderProgress.vue';
+import ImporterProgress from './ImporterProgress.vue';
 
 const data = ref([]);
 const isPreparingTable = ref(false);
@@ -36,7 +36,7 @@ const columns = ref([
         key: 'progress',
         align: 'center',
         width: '40%',
-        render: (row) => h(DownloaderProgress, { stored: row.stored, total: row.total, message: row.message }),
+        render: (row) => h(ImporterProgress, { stored: row.stored, total: row.total, message: row.message }),
     },
     {
         title: 'Actions',

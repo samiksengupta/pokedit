@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../../vue/Home.vue';
-import Downloader from '../../vue/Downloader.vue';
+import PokeApiImporter from '../../vue/PokeApiImporter.vue';
 import Editor from '../../vue/Editor.vue';
 
 const routes = [
@@ -10,9 +10,9 @@ const routes = [
         component: Home 
     },
     {
-        path: '/downloader',
-        name: 'Downloader',
-        component: Downloader,
+        path: '/importer/pokeapi',
+        name: 'PokeApi Importer',
+        component: PokeApiImporter,
     },
     { 
         path: '/editor', 

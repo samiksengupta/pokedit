@@ -30,10 +30,10 @@ const menuItems = [
         to: '/',
     },
     { 
-        label: 'Downloader',
-        key: 'downloader',
+        label: 'Importer',
+        key: 'pokeapi-importer',
         icon: renderIcon(DownloadOutlined),
-        to: '/downloader',
+        to: '/importer/pokeapi',
     },
     { 
         label: 'Editor',
