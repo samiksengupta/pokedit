@@ -392,7 +392,6 @@ class PokeApiImporter {
 
     private static function getFlavorTextsCollection(object $payload, string $versionGroup): Collection
     {
-        // dd($payload->flavor_text_entries);
         $filteredFlavorTextEntries = collect($payload->flavor_text_entries)->filter(function($value) use($versionGroup) {
             if(property_exists($value, 'version_group')) return $value->version_group->name === $versionGroup;
             else if(property_exists($value, 'version')) return $value->version->name === $versionGroup;
@@ -414,18 +413,20 @@ class PokeApiImporter {
 
     private static function getCompiledFlavorTextsCollection(object $payload, array $versionGroups): Collection
     {
-
-        $payload = collect($payload->flavor_text_entries)->filter(function($value) use($versionGroups) {
-            if(property_exists($value, 'version')) return \in_array($value->version->name, $versionGroups);
+        $filteredFlavorTextEntries = collect($payload->flavor_text_entries)->filter(function($value) use($versionGroups) {
+            if(property_exists($value, 'version')) return in_array($value->version->name, $versionGroups);
+            else return false;
         });
 
-        return Language::select(['id', 'slug'])->orderBy('id')->get()->map(function($language) use($payload) {
+        $flavorTexts = collect();
+        $languages = Language::select(['id', 'slug'])->orderBy('id')->pluck('slug')->toArray();
+        return collect($languages)->map(function($language) use($payload) {
             $flavorTextEntries = $payload->filter(function($flavorText) use($language){
-                return $flavorText->language->name === $language->slug;
+                return $flavorText->language->name === $language;
             })->values();
             return (object) [
                 'language' => $language->slug,
-                'flavor_text' => \implode(' ', $flavorTextEntries->map(fn($flavorText) => $flavorText->flavor_text)->toArray())
+                'flavor_text' => implode(' ', $flavorTextEntries->map(fn($flavorText) => $flavorText->flavor_text)->toArray())
             ];
         })->keyBy('language');
     }
