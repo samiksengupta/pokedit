@@ -1,5 +1,33 @@
 <template>
-    <n-grid item-responsive>
+    <n-grid item-responsive gutter="16" x-gap="16" y-gap="16">
+        <n-gi span="24" >
+            <n-card>
+                <n-space align="center" justify="end" size="small">
+                    <n-button
+                        type="info"
+                        :loading="isDiscovering"
+                        :disabled="isDiscovering"
+                        @click="batchProcessDiscovery()"
+                    >
+                        <template #icon>
+                            <n-icon><search-filled/></n-icon>
+                        </template>
+                        Discover
+                    </n-button>
+                    <n-button
+                        type="success"
+                        :loading="isImporting"
+                        :disabled="isImporting"
+                        @click="batchProcessImport()"
+                    >
+                        <template #icon>
+                            <n-icon><download-outlined/></n-icon>
+                        </template>
+                        Import
+                    </n-button>
+                </n-space>
+            </n-card>
+        </n-gi>
         <n-gi span="24">
             <n-data-table
                 :columns="columns"
@@ -10,21 +38,31 @@
         </n-gi>
     </n-grid>
 </template>
-<script setup>ref
+<script setup>
 import { h, ref, onMounted } from 'vue';
-import { NGi, NGrid, NSpace } from 'naive-ui';
-import { DownloadOutlined, SearchFilled } from '@vicons/material';
+import { NCard, NCheckbox, NGi, NGrid, NSpace } from 'naive-ui';
+import { CheckCircleFilled, CheckCircleOutlined, CircleOutlined, DownloadOutlined, SearchFilled } from '@vicons/material';
 import { NDataTable, NButton, NIcon } from 'naive-ui';
 import ImporterProgress from './ImporterProgress.vue';
 
-const data = ref([]);
 const isPreparingTable = ref(false);
-
+const isDiscovering = ref(false);
+const isImporting = ref(false);
+const data = ref([]);
 const columns = ref([
+    {
+        title: '',
+        type: 'selection',
+        key: 'select',
+        width: '5%',
+        render: (row) => h(NCheckbox, { checked: row.selected }, {
+            
+        }),
+    },
     {
         title: 'Resource',
         key: 'key',
-        width: '10%',
+        width: '15%',
     },
     {
         title: 'URL',
@@ -35,30 +73,16 @@ const columns = ref([
         title: 'Progress',
         key: 'progress',
         align: 'center',
-        width: '40%',
-        render: (row) => h(ImporterProgress, { stored: row.stored, total: row.total, message: row.message }),
+        width: '45%',
+        render: (row) => h(ImporterProgress, { importCount: row.importCount, totalCount: row.totalCount, message: row.message }),
     },
     {
-        title: 'Actions',
-        key: 'actions',
-        align: 'right',
-        width: '20%',
+        title: '',
+        key: 'status',
+        align: 'center',
+        width: '5%',
         render: (row) => {
-            return h(NSpace,
-                { align: 'center', justify: 'end', size: 'small' },
-                { default: () => 
-                    [
-                        h(NButton, 
-                            { type: 'info', loading: row.discovering, disabled: row.discovering || row.discovered, onClick: async () => await fetchAllResources(row) }, 
-                            { default: () => h('span', null, 'Discover'), icon: renderIcon(SearchFilled) }
-                        ),
-                        h(NButton, 
-                            { type: 'success', loading: row.importing, disabled: !row.discovered || row.importing || row.imported, onClick: async () => await importResources(row) }, 
-                            { default: () => h('span', null, 'Import'), icon: renderIcon(DownloadOutlined) }
-                        ),
-                    ]
-                }
-            );
+            return getStatusIcon(row);
         },
     },
 ]);
@@ -67,10 +91,47 @@ function renderIcon(icon) {
     return () => h(NIcon, null, { default: () => h(icon) });
 }
 
-async function fetchAllResources(row = null, offset = 0, limit = 20) {
+async function batchProcessDiscovery() {
+    const selectedRows = data.value.filter(row => row.selected);
+    if (selectedRows.length === 0) {
+        displayRowMessage(null, 'No resources selected for discovery.', 'warn');
+        return;
+    }
+    
+    isDiscovering.value = true;
+    try {
+        for (const row of selectedRows) {
+            await fetchAllResources(row); // Fetch resources for each selected row
+        }
+    } catch (error) {
+        console.error('Error during batch discovery:', error);
+    } finally {
+        isDiscovering.value = false;
+    }
+}
+
+async function batchProcessImport() {
+    const selectedRows = data.value.filter(row => row.selected && row.discovered);
+    if (selectedRows.length === 0) {
+        displayRowMessage(null, 'No resources ready for import.', 'warn');
+        return;
+    }
+    
+    isImporting.value = true;
+    try {
+        for (const row of selectedRows) {
+            await importResources(row); // Import resources for each selected row
+        }
+    } catch (error) {
+        console.error('Error during batch import:', error);
+    } finally {
+        isImporting.value = false;
+    }
+}
+
+async function fetchAllResources(row = null, offset = 0, limit = 20, deleteResource = false) {
     if (row) {
         row.discovering = true;
-        await deleteResource(row); // Clear the resources before fetching new ones
     } else {
         isPreparingTable.value = true;
     }
@@ -138,8 +199,8 @@ async function importResource(row) {
         
         // Add logic to store or import the fetched data here
         if (data.imported) {
-            row.stored += 1; // Increment the stored count
-            displayRowMessage(row, `Resource: ${type} ${id} imported successfully.`, 'info');
+            row.importCount += 1; // Increment the importCount
+            displayRowMessage(row, `Resource: ${type} ${id} imported.`, 'info');
         } else {
             // row.resources.unshift(resource); // Re-add the resource to the queue if not imported
             displayRowMessage(row, `Resource: ${type} ${id} was not imported and will be re-queued.`, 'warn');
@@ -156,17 +217,17 @@ async function deleteResource(row) {
     await fetch(url, {
         method: 'DELETE',
     });
-    displayRowMessage(row, `Import pending`, 'info');
 }
 
 function handleAllResources(result) {
     data.value = result.map(item => ({
         key: item.key,
         url: item.url,
-        total: 0,
-        stored: 0,
+        totalCount: 0,
+        importCount: 0,
         resources: [],
         next: null,
+        selected: true,
         discovering: false,
         discovered: false,
         importing: false,
@@ -176,11 +237,18 @@ function handleAllResources(result) {
 };
 
 function handleSpecificResources(result, row) {
-    row.total = result.count;
+    row.totalCount = result.count;
     row.resources.push(...result.results);
     row.next = result.next;
     row.discovered = true;
+    displayRowMessage(row, `Import pending`, 'info');
 };
+
+function getStatusIcon(row) {
+    const color = row.discovered ? 'green' : 'grey';
+    const IconComponent = row.totalCount === 0 || row.importCount < row.totalCount ? CircleOutlined : CheckCircleFilled;
+    return h(NIcon, { color: color }, { default: () => h(IconComponent) });
+}
 
 function displayRowMessage(row, message, logLevel = 'info') {
     if (logLevel === 'info') {

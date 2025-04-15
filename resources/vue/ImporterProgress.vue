@@ -1,7 +1,10 @@
 <template>
     <n-grid item-responsive>
-        <n-gi v-if="total" span="24">
-            {{ stored }} / {{ total }}
+        <n-gi v-if="totalCount" span="6">
+            {{ importCount }} / {{ totalCount }}
+        </n-gi>
+        <n-gi span="18">
+            <n-p :italic="true" :depth="3">{{ progressMessage }}</n-p>
         </n-gi>
         <n-gi span="24">
             <n-progress
@@ -11,9 +14,6 @@
                 type="line"
             ></n-progress>
         </n-gi>
-        <n-gi span="24">
-            <n-p :italic="true" :depth="3">{{ progressMessage }}</n-p>
-        </n-gi>
     </n-grid>
 </template>
 <script setup>
@@ -21,11 +21,11 @@ import { NGi, NGrid, NP, NProgress } from 'naive-ui';
 import { computed } from 'vue';
 
 const props = defineProps({
-    stored: {
+    importCount: {
         type: Number,
         default: 0,
     },
-    total: {
+    totalCount: {
         type: Number,
         default: 0,
     },
@@ -48,10 +48,10 @@ const progressMessage = computed(() => {
 });
 
 const showProgress = computed(() => {
-    return props.total > 0;
+    return props.totalCount > 0;
 });
 
 const progressPercentage = computed(() => {
-    return props.stored / props.total * 100;
+    return props.importCount / props.totalCount * 100;
 });
 </script>
