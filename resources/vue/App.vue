@@ -1,5 +1,5 @@
 <template>
-    <n-config-provider>
+    <n-config-provider :theme="darkTheme">
         <n-card class="fullscreen-card">
             <app-menu></app-menu>
             <n-card>
@@ -9,7 +9,7 @@
     </n-config-provider>
 </template>
 <script setup>
-import { NCard, NConfigProvider } from 'naive-ui';
+import { darkTheme, NCard, NConfigProvider } from 'naive-ui';
 import AppMenu from './AppMenu.vue';
 </script>
 <style>
