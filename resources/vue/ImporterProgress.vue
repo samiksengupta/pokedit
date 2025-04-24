@@ -1,10 +1,10 @@
 <template>
     <n-grid item-responsive>
-        <n-gi v-if="totalCount" span="6">
-            {{ importCount }} / {{ totalCount }}
-        </n-gi>
         <n-gi span="18">
             <n-p :italic="true" :depth="3">{{ progressMessage }}</n-p>
+        </n-gi>
+        <n-gi v-if="totalCount" span="6">
+            {{ importCount }} / {{ totalCount }}
         </n-gi>
         <n-gi span="24">
             <n-progress

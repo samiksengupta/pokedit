@@ -72,7 +72,6 @@ const columns = ref([
     {
         title: 'Progress',
         key: 'progress',
-        align: 'center',
         width: '45%',
         render: (row) => h(ImporterProgress, { importCount: row.importCount, totalCount: row.totalCount, message: row.message }),
     },
