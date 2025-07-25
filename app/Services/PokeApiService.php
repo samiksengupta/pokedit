@@ -31,7 +31,7 @@ class PokeApiService
         // Cache::forget($cacheKey); // Clear the cache for the resource type
 
         // Check if the data is already cached
-        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($baseUrl, $resourceType) {
+        return $this->getCached($cacheKey, function () use ($baseUrl, $resourceType) {
             $response = Http::get($baseUrl);
             
             if ($response->successful()) {
@@ -75,9 +75,7 @@ class PokeApiService
 
         $cacheKey = $this->generateCacheKey($baseUrl);
 
-        // Cache::forget($cacheKey); // Clear the cache for the resource type
-
-        $payload = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($baseUrl) {
+        $payload = $this->getCached($cacheKey, function () use ($baseUrl) {
             $response = Http::get($baseUrl);
             if ($response->successful()) {
                 return json_decode($response->body(), false);
@@ -122,5 +120,15 @@ class PokeApiService
     private function hasUnnamedIds($resourceType): bool
     {
         return in_array($resourceType, ['language', 'characteristic', 'contest-effect', 'evolution-chain', 'machine', 'super-contest-effect']);
+    }
+
+    // Get the response of a callback through a caching layer
+    private function getCached(string $cacheKey, Closure $callback, $fresh = false): mixed
+    {
+        if ($fresh) {
+            Cache::forget($cacheKey); // Clear the cache for the resource type
+        }
+        $cacheTime = Setting::find('app.api.cache')->value ?? 30
+        return $cacheTime > 0 ? Cache::remember($cacheKey, $cacheTime, $callback) : Cache::rememberForever($cacheKey, $callback);
     }
 }
