@@ -11,11 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('generations', function (Blueprint $table) {
+        Schema::create('type_matchups', function (Blueprint $table) {
             $table->id();
-            $table->string('slug')->unique()->nullable();
+            $table->foreignId('attacking_type_id')->constrained('types')->onDelete('cascade');
+            $table->foreignId('defending_type_id')->constrained('types')->onDelete('cascade');
+            $table->decimal('effectiveness', 3, 1); // e.g. 0.0, 0.5, 1.0, 2.0
             $table->foreignId('version_id')->nullable()->constrained('versions');
             $table->timestamps();
+        
+            $table->unique(['attacking_type_id', 'defending_type_id']); // prevent duplicates
         });
     }
 
@@ -24,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('generations');
+        Schema::dropIfExists('type_matchups');
     }
 };

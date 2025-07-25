@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('nameable_type');
             $table->unsignedBigInteger('nameable_id');
-            $table->foreignId('language_id')->constrained('languages')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('version_id')->constrained('versions')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('language_id')->constrained('languages');
+            $table->foreignId('version_id')->constrained('versions');
         });
     }
 

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('types', function (Blueprint $table) {
             $table->id();
             $table->string('slug')->unique()->nullable();
-            $table->foreignId('version_id')->nullable()->constrained('versions')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('version_id')->nullable()->constrained('versions');
             $table->timestamps();
         });
     }

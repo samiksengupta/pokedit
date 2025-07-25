@@ -16,8 +16,8 @@ return new class extends Migration
             $table->text('flavor_text');
             $table->string('textable_type');
             $table->unsignedBigInteger('textable_id');
-            $table->foreignId('language_id')->constrained('languages')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('version_id')->constrained('versions')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('language_id')->constrained('languages');
+            $table->foreignId('version_id')->constrained('versions');
         });
     }
 

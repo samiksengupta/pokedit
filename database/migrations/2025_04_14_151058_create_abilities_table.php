@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('slug')->unique()->nullable();
             $table->foreignId('generation_id')->nullable()->constrained('generations')->onUpdate('cascade')->onDelete('set null');
-            $table->foreignId('version_id')->nullable()->constrained('versions')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('version_id')->nullable()->constrained('versions');
             $table->timestamps();
         });
     }
