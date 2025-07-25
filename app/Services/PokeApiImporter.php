@@ -139,7 +139,7 @@ class PokeApiImporter {
         if(\in_array($name, $blacklist)) return true;
 
         $version = Version::where('slug', Setting::find('app.version')->value ?? null)->firstOrFail();
-        $generation = Generation::where('slug', $data->generation->name ?? null)->first();
+        $generation = Generation::where('slug', $payload->generation->name ?? null)->first();
 
         $ability = Ability::firstOrNew([
             'slug' => $name,
@@ -158,25 +158,25 @@ class PokeApiImporter {
         return true;
     }
     
-    // public static function importType($name)
-    // {
-    //     $blacklist = explode(',', Setting::find('importer.blacklist.type')->value ?? '');
-    //     if(\in_array($name, $blacklist)) return true;
+    public static function importType($name, object $payload)
+    {
+        $blacklist = explode(',', Setting::find('importer.blacklist.type')->value ?? '');
+        if(\in_array($name, $blacklist)) return true;
 
-    //     $api = new PokeApi;
-    //     $data = json_decode($api->pokemonType($name));
+        $api = new PokeApi;
+        $data = json_decode($api->pokemonType($name));
 
-    //     $version = Version::where('slug', Setting::find('app.version')->value ?? null)->firstOrFail();
+        $version = Version::where('slug', Setting::find('app.version')->value ?? null)->firstOrFail();
 
-    //     $type = Type::firstOrNew(['slug' => $name], []);
+        $type = Type::firstOrNew(['slug' => $name], []);
 
-    //     $type->version()->associate($version);
+        $type->version()->associate($version);
 
-    //     $type->names = static::getNamesCollection($data);
+        $type->names = static::getNamesCollection($data);
         
-    //     $type->save();
-    //     return true;
-    // }
+        $type->save();
+        return true;
+    }
 
     // public static function importDamageCategory($name)
     // {
