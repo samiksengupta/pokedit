@@ -3,28 +3,23 @@
 namespace App\Services;
 
 use DB;
+use App\Models\Color;
+use App\Models\EggGroup;
+use App\Models\Habitat;
 use App\Models\Setting;
-// use \App\Models\Type;
+use App\Models\Shape;
+use App\Models\Type;
 use App\Models\Version;
-// use \App\Models\Move;
-// use \App\Models\Form;
-// use \App\Models\Shape;
-// use \App\Models\Color;
 use App\Models\Language;
 use App\Models\MoveFlag;
-use \App\Models\Ability;
-// use \App\Models\Habitat;
-// use \App\Models\Species;
+use App\Models\Ability;
+use App\Models\GrowthRate;
 use App\Models\Generation;
-// use \App\Models\EggGroup;
 use App\Models\GenderRatio;
-// use \App\Models\MoveTarget;
-// use \App\Models\GrowthRate;
+use App\Models\MoveTarget;
+use App\Models\DamageCategory;
+use App\Models\ContestCondition;
 use Illuminate\Support\Collection;
-// use \App\Models\MoveFunction;
-// use \App\Models\DamageCategory;
-// use \App\Models\MoveLearnMethod;
-// use \App\Models\ContestCondition;
 
 class PokeApiImporter {
 
@@ -38,46 +33,18 @@ class PokeApiImporter {
             'move-damage-class' => static::importDamageCategory($resourceId, $payload),
             'contest-type' => static::importContestCondition($resourceId, $payload),
             'move-target' => static::importTarget($resourceId, $payload),
-            'move' => static::importMove($resourceId, $payload),
-            'move-learn-method' => static::importMoveLearnMethod($resourceId, $payload),
             'egg-group' => static::importEggGroup($resourceId, $payload),
             'growth-rate' => static::importGrowthRate($resourceId, $payload),
             'pokemon-habitat' => static::importHabitat($resourceId, $payload),
             'pokemon-shape' => static::importShape($resourceId, $payload),
             'pokemon-color' => static::importColor($resourceId, $payload),
-            'pokemon-species' => static::importSpecies($resourceId, $payload),
-            'generation' => static::importGeneration($resourceId, $payload),
-            'ability' => static::importAbility($resourceId, $payload),
-            'type' => static::importType($resourceId, $payload),
-            'move-damage-class' => static::importDamageCategory($resourceId, $payload),
-            'contest-type' => static::importContestCondition($resourceId, $payload),
-            'move-target' => static::importTarget($resourceId, $payload),
-            'move' => static::importMove($resourceId, $payload),
-            'move-learn-method' => static::importMoveLearnMethod($resourceId, $payload),
-            'egg-group' => static::importEggGroup($resourceId, $payload),
-            'growth-rate' => static::importGrowthRate($resourceId, $payload),
-            'pokemon-habitat' => static::importHabitat($resourceId, $payload),
-            'pokemon-shape' => static::importShape($resourceId, $payload),
-            'pokemon-color' => static::importColor($resourceId, $payload),
-            'generation' => static::importGeneration($resourceId, $payload),
-            'ability' => static::importAbility($resourceId, $payload),
-            'type' => static::importType($resourceId, $payload),
-            'move-damage-class' => static::importDamageCategory($resourceId, $payload),
-            'contest-type' => static::importContestCondition($resourceId, $payload),
-            'move-target' => static::importTarget($resourceId, $payload),
-            'move' => static::importMove($resourceId, $payload),
-            'move-learn-method' => static::importMoveLearnMethod($resourceId, $payload),
-            'egg-group' => static::importEggGroup($resourceI, $payload),
-            'growth-rate' => static::importGrowthRate($resourceId, $payload),
-            'pokemon-habitat' => static::importHabitat($resourceId, $payload),
-            'pokemon-shape' => static::importShape($resourceId, $payload),
-            'pokemon-color' => static::importColor($resourceId, $payload),
-            'pokemon-species' => static::importSpecies($resourceId, $payload),
+            // 'move' => static::importMove($resourceId, $payload),
+            // 'move-learn-method' => static::importMoveLearnMethod($resourceId, $payload),
+            // 'pokemon-species' => static::importSpecies($resourceId, $payload),
             // 'version' => static::importVersion($resourceId, $payload),
             // 'version-group' => static::importVersionGroup($resourceId, $payload),
             default => false,
         };
-        return false;
     }
 
     public static function truncate(string $resourceType)
@@ -178,31 +145,87 @@ class PokeApiImporter {
         return true;
     }
 
-    // public static function importDamageCategory($name)
-    // {
-    //     $api = new PokeApi;
-    //     $data = json_decode($api->moveDamageClass($name));
-    //     DamageCategory::upsert(['slug' => $name], []);
-    //     return true;
-    // }
+    public static function importDamageCategory(string $name, object $payload): bool
+    {
+        DamageCategory::upsert(
+            ['slug' => $payload->name],
+            ['slug'],
+            ['updated_at']
+        );
+        return true;
+    }
 
-    // public static function importContestCondition($name)
-    // {
-    //     $api = new PokeApi;
-    //     $data = json_decode($api->contestType($name));
-    //     ContestCondition::upsert(['slug' => $name], []);
-    //     return true;
-    // }
+    public static function importContestCondition(string $name, object $payload): bool
+    {
+        ContestCondition::upsert(
+            ['slug' => $payload->name],
+            ['slug'],
+            ['updated_at']
+        );
+        return true;
+    }
 
-    // public static function importTarget($name)
-    // {
-    //     $api = new PokeApi;
-    //     $data = json_decode($api->moveTarget($name));
-    //     MoveTarget::upsert(['slug' => MoveTarget::getLocalName($name)], []);
-    //     return true;
-    // }
+    public static function importTarget(string $name, object $payload): bool
+    {
+        MoveTarget::upsert(
+            ['slug' => $payload->name],
+            ['slug'],
+            ['updated_at']
+        );
+        return true;
+    }
 
-    // public static function importMove($name)
+    public static function importEggGroup(string $name, object $payload): bool
+    {
+        EggGroup::upsert(
+            ['slug' => $payload->name],
+            ['slug'],
+            ['updated_at']
+        );
+        return true;
+    }
+
+    public static function importGrowthRate(string $name, object $payload): bool
+    {
+        GrowthRate::upsert(
+            ['slug' => $payload->name],
+            ['slug'],
+            ['updated_at']
+        );
+        return true;
+    }
+
+    public static function importHabitat(string $name, object $payload): bool
+    {
+        Habitat::upsert(
+            ['slug' => $payload->name],
+            ['slug'],
+            ['updated_at']
+        );
+        return true;
+    }
+
+    public static function importShape(string $name, object $payload): bool
+    {
+        Shape::upsert(
+            ['slug' => $payload->name],
+            ['slug'],
+            ['updated_at']
+        );
+        return true;
+    }
+
+    public static function importColor(string $name, object $payload): bool
+    {
+        Color::upsert(
+            ['slug' => $payload->name],
+            ['slug'],
+            ['updated_at']
+        );
+        return true;
+    }
+
+    // public static function importMove(string $name, object $payload): bool
     // {
     //     $blacklist = explode(',', Setting::find('importer.blacklist.move')->value ?? '');
     //     if(\in_array($name, $blacklist)) return true;
@@ -256,41 +279,31 @@ class PokeApiImporter {
 
     // public static function importEggGroup($name)
     // {
-    //     $api = new PokeApi;
-    //     $data = json_decode($api->eggGroup($name));
-    //     EggGroup::upsert(['slug' => $name], []);
+    //     EggGroup::upsert(['slug' => $name], ['slug'], ['updated_at']);
     //     return true;
     // }
 
     // public static function importGrowthRate($name)
     // {
-    //     $api = new PokeApi;
-    //     $data = json_decode($api->growthRate($name));
-    //     GrowthRate::upsert(['slug' => $name], []);
+    //     GrowthRate::upsert(['slug' => $name], ['slug'], ['updated_at']);
     //     return true;
     // }
 
     // public static function importHabitat($name)
     // {
-    //     $api = new PokeApi;
-    //     $data = json_decode($api->pokemonHabitat($name));
-    //     Habitat::upsert(['slug' => $name], []);
+    //     Habitat::upsert(['slug' => $name], ['slug'], ['updated_at']);
     //     return true;
     // }
 
     // public static function importShape($name)
     // {
-    //     $api = new PokeApi;
-    //     $data = json_decode($api->pokemonShape($name));
-    //     Shape::upsert(['slug' => $name], []);
+    //     Shape::upsert(['slug' => $name], ['slug'], ['updated_at']);
     //     return true;
     // }
 
     // public static function importColor($name)
     // {
-    //     $api = new PokeApi;
-    //     $data = json_decode($api->pokemonColor($name));
-    //     Color::upsert(['slug' => $name], []);
+    //     Color::upsert(['slug' => $name], ['slug'], ['updated_at']);
     //     return true;
     // }
 
@@ -404,7 +417,7 @@ class PokeApiImporter {
             if (in_array($flavorEntry->language->name, $languages)) {
                 $flavorTexts->push((object) [
                     'language' => $flavorEntry->language->name,
-                    'flavor_text' => $flavorTextEntry->flavor_text ?? ""
+                    'flavor_text' => $flavorEntry->flavor_text ?? ""
                 ]);
             }
         }
