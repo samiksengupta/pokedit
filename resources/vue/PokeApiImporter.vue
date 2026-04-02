@@ -41,7 +41,7 @@
 <script setup>
 import { h, ref, onMounted } from 'vue';
 import { NCard, NCheckbox, NGi, NGrid, NSpace } from 'naive-ui';
-import { CheckCircleFilled, CheckCircleOutlined, CircleOutlined, DownloadOutlined, SearchFilled } from '@vicons/material';
+import { CheckCircleFilled, CircleOutlined, DownloadOutlined, SearchFilled } from '@vicons/material';
 import { NDataTable, NButton, NIcon } from 'naive-ui';
 import ImporterProgress from './ImporterProgress.vue';
 

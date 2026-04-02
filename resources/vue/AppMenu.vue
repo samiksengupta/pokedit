@@ -16,7 +16,7 @@
 import { h, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { NIcon, NMenu } from 'naive-ui';
-import { HomeOutlined, DownloadOutlined, EditOutlined, SettingsOutlined } from '@vicons/material'
+import { HomeOutlined, DownloadOutlined, EditOutlined, SettingsOutlined, StorageOutlined } from '@vicons/material'
 
 const defaultMenuItem = 'home';
 
@@ -40,6 +40,12 @@ const menuItems = [
         key: 'editor',
         icon: renderIcon(EditOutlined),
         to: '/editor',
+    },
+    { 
+        label: 'Data Manager',
+        key: 'data-manager',
+        icon: renderIcon(StorageOutlined),
+        to: '/data-manager',
     },
     { 
         label: 'Settings',

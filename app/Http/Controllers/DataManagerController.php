@@ -11,7 +11,7 @@ class DataManagerController extends Controller
     public function reset(Request $request): JsonResponse
     {
         try {
-            Artisan::call('migrate:fresh', [
+            Artisan::call('native:migrate:fresh', [
                 '--seed' => true,
             ]);
             return response()->json(['message' => 'Database has been reset successfully.']);
