@@ -6,7 +6,7 @@
                     <n-button
                         type="info"
                         :loading="isDiscovering"
-                        :disabled="isDiscovering"
+                        :disabled="isDiscovering || isImporting || isPreparingTable"
                         @click="batchProcessDiscovery()"
                     >
                         <template #icon>
@@ -17,7 +17,7 @@
                     <n-button
                         type="success"
                         :loading="isImporting"
-                        :disabled="isImporting"
+                        :disabled="isImporting || isDiscovering || isPreparingTable"
                         @click="batchProcessImport()"
                     >
                         <template #icon>
@@ -55,7 +55,7 @@ const columns = ref([
         type: 'selection',
         key: 'select',
         width: '5%',
-        render: (row) => h(NCheckbox, { checked: row.selected }, {
+        render: (row) => h(NCheckbox, { checked: row.selected, onUpdateChecked: (checked) => { row.selected = checked; } }, {
             
         }),
     },
