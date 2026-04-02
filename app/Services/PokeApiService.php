@@ -123,12 +123,12 @@ class PokeApiService
     }
 
     // Get the response of a callback through a caching layer
-    private function getCached(string $cacheKey, Closure $callback, $fresh = false): mixed
+    private function getCached(string $cacheKey, \Closure $callback, $fresh = false): mixed
     {
         if ($fresh) {
             Cache::forget($cacheKey); // Clear the cache for the resource type
         }
-        $cacheTime = Setting::find('app.api.cache')->value ?? 30
+        $cacheTime = \App\Models\Setting::find('app.api.cache')->value ?? 30;
         return $cacheTime > 0 ? Cache::remember($cacheKey, $cacheTime, $callback) : Cache::rememberForever($cacheKey, $callback);
     }
 }
