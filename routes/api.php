@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DataManagerController;
 use App\Http\Controllers\PokeApiResourceController;
 
 // Group routes with a common prefix
@@ -9,3 +10,5 @@ Route::group(['prefix' => 'pokeapi'], function () {
     Route::get('resources/{type}/{id}', [PokeApiResourceController::class, 'show'])->name('resources.show');
     Route::delete('resources/{type}', [PokeApiResourceController::class, 'destroy'])->name('resources.destroy');
 });
+
+Route::delete('database/reset', [DataManagerController::class, 'reset'])->name('database.reset');

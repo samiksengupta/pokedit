@@ -20,7 +20,7 @@ class SettingSeeder extends Seeder
     private function createSettings($structure)
     {
         foreach ($structure as $key => $item) {
-            Setting::create([
+            Setting::updateOrCreate([
                 'key' => $item['key'],
                 'name' => $item['name'] ?? $item['key'],
                 'value' => $item['value'],
@@ -65,6 +65,11 @@ class SettingSeeder extends Seeder
                 'key' => 'app.decimal',
                 'name' => 'Default Decimal Seperator',
                 'value' => '.',
+            ],
+            [
+                'key' => 'app.api.cache',
+                'name' => 'Default Cache storage for external responses (in mins) with 0 for forever',
+                'value' => '30',
             ],
             [
                 'key' => 'db.timezone',

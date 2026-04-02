@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../../vue/Home.vue';
 import PokeApiImporter from '../../vue/PokeApiImporter.vue';
 import Editor from '../../vue/Editor.vue';
+import DataManager from '../../vue/DataManager.vue';
 import Settings from '../../vue/Settings.vue';
 
 const routes = [
@@ -19,6 +20,11 @@ const routes = [
         path: '/editor', 
         name: 'Editor', 
         component: Editor 
+    },
+    { 
+        path: '/data-manager', 
+        name: 'Data Manager', 
+        component: DataManager 
     },
     { 
         path: '/settings', 
